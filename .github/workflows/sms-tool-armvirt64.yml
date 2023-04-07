@@ -22,7 +22,7 @@ jobs:
           rm -f *.tar.xz
           mv openwrt-* openwrt
           
-      - name: Get 3ginfo-lite source
+      - name: Get sms-tool source
         run: |
           cd openwrt/package/
           svn co https://github.com/4IceG/luci-app-3ginfo-lite/tags/1.0.40-20230321/ ./
@@ -37,7 +37,7 @@ jobs:
           cd openwrt/
           ./scripts/feeds install -a
       
-      - name: Compile the 3ginfo-lite
+      - name: Compile the sms-tool
         run: |
           mkdir -p packed
           cd openwrt/
