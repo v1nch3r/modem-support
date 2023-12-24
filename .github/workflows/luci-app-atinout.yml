@@ -24,7 +24,7 @@ jobs:
           
       - name: Get atinout source
         run: |
-          cd openwrt/package/
+          cd openwrt/packages/
           svn co https://github.com/4IceG/luci-app-atinout-mod/tags/1.3.2-20220315/ ./
       
       - name: Updating feeds
@@ -42,7 +42,7 @@ jobs:
           mkdir -p packed
           cd openwrt/
           make defconfig
-          make package/luci-app-atinout-mod/compile -j${nproc} V=w
+          make packages/luci-app-atinout-mod/compile -j${nproc} V=w
           find bin/ -type f -name '*luci-app-atinout*' -exec mv -t ../packed {} +
          
       - name: Upload Package to Releases
