@@ -1,0 +1,57 @@
+name: modeminfo
+
+on:
+  workflow_dispatch:
+
+env:
+  REPO_SDK: https://downloads.openwrt.org/releases/23.05.2/targets/armsr/armv8/openwrt-imagebuilder-23.05.2-armsr-armv8.Linux-x86_64.tar.xz
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    if: ${{ github.event.repository.owner.id }} == ${{ github.event.sender.id }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Download sdk
+        run: |
+          wget ${REPO_SDK}
+          tar xf *.tar.xz
+          rm -f *.tar.xz
+          mv openwrt-* openwrt
+          
+      - name: Get modeminfo source
+        run: |
+          cd openwrt/package/
+          svn co https://github.com/koshev-msk/modemfeed/trunk/luci/applications/
+          svn co https://github.com/koshev-msk/modemfeed/trunk/packages/net/
+      
+      - name: Updating feeds
+        run: |
+          cd openwrt/
+          ./scripts/feeds update -a
+          
+      - name: Installing feeds
+        run: |
+          cd openwrt/
+          ./scripts/feeds install -a
+      
+      - name: Compile the modeminfo
+        run: |
+          mkdir -p packed
+          cd openwrt/
+          make defconfig
+          make package/luci-app-modeminfo/compile -j${nproc} V=w
+          make package/net/modeminfo/compile -j${nproc} V=w
+          find bin/ -type f -name '*modeminfo*' -exec mv -t ../packed {} +
+         
+      - name: Upload Package to Releases
+        uses: ncipollo/release-action@main
+        if: ${{ env.PACKAGED_STATUS }} == 'success' && !cancelled()
+        with:
+          tag: 22.05.2-generic
+          artifacts: "packed/*"
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
